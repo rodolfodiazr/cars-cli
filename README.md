@@ -16,7 +16,7 @@ cd cars-cli
 ### 2. Run the CLI
 
 ```bash
-go run main.go
+go run ./cmd/cars
 ```
 
 ## 📋 Available Commands
