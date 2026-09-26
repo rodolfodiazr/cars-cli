@@ -14,3 +14,8 @@ func List(ctx context.Context) error {
 	)
 	return nil
 }
+
+func Create(ctx context.Context) error {
+	fmt.Println("Car created")
+	return nil
+}

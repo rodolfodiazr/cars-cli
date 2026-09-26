@@ -16,5 +16,8 @@ func main() {
 }
 
 func run() error {
-	return commands.List(context.Background())
+	if err := commands.List(context.Background()); err != nil {
+		return err
+	}
+	return commands.Create(context.Background())
 }
