@@ -15,6 +15,16 @@ func List(ctx context.Context) error {
 	return nil
 }
 
+func Get(ctx context.Context, carID string) error {
+	fmt.Printf("%s\t%s\t%s\t%s\n",
+		"1",
+		"Toyota",
+		"Corolla",
+		"2024",
+	)
+	return nil
+}
+
 func Create(ctx context.Context) error {
 	fmt.Println("Car created")
 	return nil

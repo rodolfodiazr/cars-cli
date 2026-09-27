@@ -19,5 +19,8 @@ func run() error {
 	if err := commands.List(context.Background()); err != nil {
 		return err
 	}
+	if err := commands.Get(context.Background(), "1"); err != nil {
+		return err
+	}
 	return commands.Create(context.Background())
 }
