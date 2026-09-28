@@ -29,3 +29,8 @@ func Create(ctx context.Context) error {
 	fmt.Println("Car created")
 	return nil
 }
+
+func Update(ctx context.Context, carID string) error {
+	fmt.Println("Car updated")
+	return nil
+}

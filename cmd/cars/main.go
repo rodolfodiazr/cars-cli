@@ -22,5 +22,8 @@ func run() error {
 	if err := commands.Get(context.Background(), "1"); err != nil {
 		return err
 	}
-	return commands.Create(context.Background())
+	if err := commands.Create(context.Background()); err != nil {
+		return err
+	}
+	return commands.Update(context.Background(), "1")
 }
