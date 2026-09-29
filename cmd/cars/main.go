@@ -16,14 +16,18 @@ func main() {
 }
 
 func run() error {
-	if err := commands.List(context.Background()); err != nil {
+	ctx := context.Background()
+	if err := commands.List(ctx); err != nil {
 		return err
 	}
-	if err := commands.Get(context.Background(), "1"); err != nil {
+	if err := commands.Get(ctx, "1"); err != nil {
 		return err
 	}
-	if err := commands.Create(context.Background()); err != nil {
+	if err := commands.Create(ctx); err != nil {
 		return err
 	}
-	return commands.Update(context.Background(), "1")
+	if err := commands.Update(ctx, "1"); err != nil {
+		return err
+	}
+	return commands.Delete(ctx, "1")
 }

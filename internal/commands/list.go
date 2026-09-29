@@ -34,3 +34,8 @@ func Update(ctx context.Context, carID string) error {
 	fmt.Println("Car updated")
 	return nil
 }
+
+func Delete(ctx context.Context, carID string) error {
+	fmt.Println("Car deleted")
+	return nil
+}
