@@ -17,13 +17,13 @@ func main() {
 
 func run() error {
 	ctx := context.Background()
+	if err := commands.Create(ctx); err != nil {
+		return err
+	}
 	if err := commands.List(ctx); err != nil {
 		return err
 	}
 	if err := commands.Get(ctx, "1"); err != nil {
-		return err
-	}
-	if err := commands.Create(ctx); err != nil {
 		return err
 	}
 	if err := commands.Update(ctx, "1"); err != nil {
