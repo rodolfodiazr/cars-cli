@@ -9,10 +9,15 @@ import (
 )
 
 func main() {
+	fmt.Println("CARS - COMMAND CLI")
+	fmt.Println("------------------")
+	fmt.Println("------------------")
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	fmt.Println("------------------")
+	fmt.Println("------------------")
 }
 
 func run() error {
