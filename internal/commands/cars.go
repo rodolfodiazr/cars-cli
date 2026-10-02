@@ -2,40 +2,31 @@ package commands
 
 import (
 	"context"
-	"fmt"
 )
 
 func List(ctx context.Context) error {
-	fmt.Printf("%s\t%s\t%s\t%s\n",
-		"1",
-		"Toyota",
-		"Corolla",
-		"2024",
-	)
+	// call client.ListCars()
+	// display results
 	return nil
 }
 
 func Get(ctx context.Context, carID string) error {
-	fmt.Printf("%s\t%s\t%s\t%s\n",
-		"1",
-		"Toyota",
-		"Corolla",
-		"2024",
-	)
+	// call client.GetCar()
+	// display result
 	return nil
 }
 
 func Create(ctx context.Context) error {
-	fmt.Println("Car created")
+	// call client.CreateCar()
 	return nil
 }
 
 func Update(ctx context.Context, carID string) error {
-	fmt.Println("Car updated")
+	// call client.UpdateCar()
 	return nil
 }
 
 func Delete(ctx context.Context, carID string) error {
-	fmt.Println("Car deleted")
+	// call client.DeleteCar()
 	return nil
 }
