@@ -51,8 +51,32 @@ func (c *Client) ListCars(ctx context.Context) ([]car.Car, error) {
 }
 
 func (c *Client) GetCar(ctx context.Context, id string) (car.Car, error) {
-	// GET /cars/{id}
-	return car.Car{}, nil
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		c.baseURL+"/cars/"+id,
+		nil,
+	)
+	if err != nil {
+		return car.Car{}, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return car.Car{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return car.Car{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var rs car.Car
+	if err := json.NewDecoder(resp.Body).Decode(&rs); err != nil {
+		return car.Car{}, err
+	}
+
+	return rs, nil
 }
 
 func (c *Client) CreateCar(ctx context.Context, car car.Car) error {

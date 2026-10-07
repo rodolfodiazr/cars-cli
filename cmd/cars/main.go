@@ -44,6 +44,12 @@ func run() error {
 	}
 	fmt.Println("cars: ", cars)
 
+	car, err := apiClient.GetCar(ctx, "1I3XJRLLC")
+	if err != nil {
+		return err
+	}
+	fmt.Println("car: ", car)
+
 	if err := commands.Get(ctx, "1"); err != nil {
 		return err
 	}
