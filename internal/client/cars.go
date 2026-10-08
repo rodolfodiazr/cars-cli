@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -85,7 +86,35 @@ func (c *Client) CreateCar(ctx context.Context, car car.Car) error {
 }
 
 func (c *Client) UpdateCar(ctx context.Context, car car.Car) error {
-	// PUT/PATCH /cars/{id}
+	url := fmt.Sprintf("%s/cars/%s", c.baseURL, car.ID)
+
+	body, err := json.Marshal(car)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPut,
+		url,
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
 	return nil
 }
 

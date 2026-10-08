@@ -53,8 +53,10 @@ func run() error {
 	if err := commands.Get(ctx, "1"); err != nil {
 		return err
 	}
-	if err := commands.Update(ctx, "1"); err != nil {
+
+	if err := apiClient.UpdateCar(ctx, car); err != nil {
 		return err
 	}
+
 	return commands.Delete(ctx, "1")
 }
