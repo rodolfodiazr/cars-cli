@@ -10,18 +10,6 @@ import (
 	"github.com/rodolfodiazr/cars-cli/internal/car"
 )
 
-type Client struct {
-	httpClient *http.Client
-	baseURL    string
-}
-
-func New(httpClient *http.Client, baseURL string) *Client {
-	return &Client{
-		httpClient: httpClient,
-		baseURL:    baseURL,
-	}
-}
-
 func (c *Client) ListCars(ctx context.Context) ([]car.Car, error) {
 	req, err := http.NewRequestWithContext(
 		ctx,
