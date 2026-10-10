@@ -8,23 +8,23 @@ import (
 	"net/http"
 )
 
-type HTTPClient interface {
+type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
 type Client struct {
-	httpClient *http.Client
+	httpClient HttpClient
 	baseURL    string
 }
 
-func New(httpClient *http.Client, baseURL string) *Client {
+func New(httpClient HttpClient, baseURL string) *Client {
 	return &Client{
 		httpClient: httpClient,
 		baseURL:    baseURL,
 	}
 }
 
-func (c *Client) Do(ctx context.Context, method string, path string, body any) (*http.Response, error) {
+func (c *Client) Do(ctx context.Context, method, url string, body any) (*http.Response, error) {
 	var requestBody *bytes.Buffer
 
 	if body != nil {
@@ -38,7 +38,7 @@ func (c *Client) Do(ctx context.Context, method string, path string, body any) (
 	req, err := http.NewRequestWithContext(
 		ctx,
 		method,
-		c.baseURL+path,
+		url,
 		requestBody,
 	)
 	if err != nil {
