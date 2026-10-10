@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/rodolfodiazr/cars-cli/internal/client"
-	"github.com/rodolfodiazr/cars-cli/internal/commands"
 )
 
 func main() {
@@ -25,38 +23,16 @@ func main() {
 
 func run() error {
 	ctx := context.Background()
-	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
-	}
 
-	apiClient := client.New(
-		httpClient,
-		"http://localhost:8080",
-	)
-
-	if err := commands.Create(ctx); err != nil {
-		return err
-	}
-
-	cars, err := apiClient.ListCars(ctx)
+	sdk := client.NewCarClient(http.DefaultClient)
+	carListResponse, err := sdk.ListCars(ctx)
 	if err != nil {
 		return err
 	}
-	fmt.Println("cars: ", cars)
 
-	car, err := apiClient.GetCar(ctx, "1I3XJRLLC")
-	if err != nil {
-		return err
+	// Retrieve the list of cars from the Cars API
+	for index, c := range carListResponse {
+		fmt.Printf("%d | %s | %s | %s | %d\n", (index + 1), c.ID, c.Make, c.Model, c.Year)
 	}
-	fmt.Println("car: ", car)
-
-	if err := commands.Get(ctx, "1"); err != nil {
-		return err
-	}
-
-	if err := apiClient.UpdateCar(ctx, car); err != nil {
-		return err
-	}
-
-	return commands.Delete(ctx, "1")
+	return nil
 }
