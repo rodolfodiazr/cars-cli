@@ -25,14 +25,23 @@ func run() error {
 	ctx := context.Background()
 
 	sdk := client.NewCarClient(http.DefaultClient)
+
+	// Retrieve the list of cars from the Cars API
 	carListResponse, err := sdk.ListCars(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Retrieve the list of cars from the Cars API
 	for index, c := range carListResponse {
 		fmt.Printf("%d | %s | %s | %s | %d\n", (index + 1), c.ID, c.Make, c.Model, c.Year)
 	}
+
+	// Retrieve a car from the Cars API
+	carGetResponse, err := sdk.GetCar(ctx, "1I3XJRLLC")
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\n\n%s | %s | %s | %d\n", carGetResponse.ID, carGetResponse.Make, carGetResponse.Model, carGetResponse.Year)
 	return nil
 }

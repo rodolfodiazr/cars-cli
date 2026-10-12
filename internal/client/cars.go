@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/rodolfodiazr/cars-cli/internal/car"
@@ -58,33 +59,26 @@ func (c *carClient) ListCars(ctx context.Context) ([]car.Car, error) {
 }
 
 func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
-	// req, err := http.NewRequestWithContext(
-	// 	ctx,
-	// 	http.MethodGet,
-	// 	c.baseURL+"/cars/"+id,
-	// 	nil,
-	// )
-	// if err != nil {
-	// 	return car.Car{}, err
-	// }
+	path := fmt.Sprintf("/cars/%s", carID)
 
-	// resp, err := c.httpClient.Do(req)
-	// if err != nil {
-	// 	return car.Car{}, err
-	// }
-	// defer resp.Body.Close()
+	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, nil, nil)
+	if err != nil {
+		return car.Car{}, err
+	}
+	request = request.WithContext(ctx)
 
-	// if resp.StatusCode != http.StatusOK {
-	// 	return car.Car{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	// }
+	// Make the request
+	var carResponse car.CarResponse
+	if err := Do(c.httpClient, request, &carResponse); err != nil {
+		return car.Car{}, err
+	}
 
-	// var rs car.Car
-	// if err := json.NewDecoder(resp.Body).Decode(&rs); err != nil {
-	// 	return car.Car{}, err
-	// }
-
-	// return rs, nil
-	return car.Car{}, nil
+	return car.Car{
+		ID:    carResponse.ID,
+		Make:  carResponse.Make,
+		Model: carResponse.Model,
+		Year:  carResponse.Year,
+	}, nil
 }
 
 func (c *carClient) CreateCar(ctx context.Context, car car.Car) error {
