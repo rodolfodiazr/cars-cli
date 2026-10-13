@@ -27,7 +27,7 @@ func run() error {
 	sdk := client.NewCarClient(http.DefaultClient)
 
 	// Retrieve the list of cars from the Cars API
-	carListResponse, err := sdk.ListCars(ctx)
+	carListResponse, err := sdk.ListCars(ctx, "", "", 0)
 	if err != nil {
 		return err
 	}
@@ -42,6 +42,6 @@ func run() error {
 		return err
 	}
 
-	fmt.Printf("\n\n%s | %s | %s | %d\n", carGetResponse.ID, carGetResponse.Make, carGetResponse.Model, carGetResponse.Year)
+	fmt.Printf("\n\n%s | %s | %s | %d\n\n", carGetResponse.ID, carGetResponse.Make, carGetResponse.Model, carGetResponse.Year)
 	return nil
 }

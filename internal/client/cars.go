@@ -2,14 +2,21 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/rodolfodiazr/cars-cli/internal/car"
 )
 
+var (
+	ErrEmptyCarID  = errors.New("empty car ID")
+	ErrCarNotFound = errors.New("car not found")
+)
+
 type Car interface {
-	ListCars(ctx context.Context) ([]car.Car, error)
+	ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error)
 	GetCar(ctx context.Context, carID string) (car.Car, error)
 	CreateCar(ctx context.Context, car car.Car) error
 	UpdateCar(ctx context.Context, car car.Car) error
@@ -26,10 +33,22 @@ func NewCarClient(httpClient *http.Client) Car {
 	}
 }
 
-func (c *carClient) ListCars(ctx context.Context) ([]car.Car, error) {
+func (c *carClient) ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error) {
 	path := "/cars"
 
-	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, nil, nil)
+	// Set query params
+	params := url.Values{}
+	if make != "" {
+		params.Add("make", make)
+	}
+	if model != "" {
+		params.Add("model", model)
+	}
+	if year > 0 {
+		params.Add("year", fmt.Sprintf("%d", year))
+	}
+
+	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, params, nil)
 	if err != nil {
 		return []car.Car{}, err
 	}
@@ -38,11 +57,6 @@ func (c *carClient) ListCars(ctx context.Context) ([]car.Car, error) {
 	// Make the request
 	var carsResponse car.CarsResponse
 	if err := Do(c.httpClient, request, &carsResponse); err != nil {
-		// Handle known errors
-		// var responseErr car.CarResponseError
-		// if errors.As(err, &responseErr) {
-
-		// }
 		return nil, err
 	}
 
@@ -59,6 +73,10 @@ func (c *carClient) ListCars(ctx context.Context) ([]car.Car, error) {
 }
 
 func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
+	if carID == "" {
+		return car.Car{}, ErrEmptyCarID
+	}
+
 	path := fmt.Sprintf("/cars/%s", carID)
 
 	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, nil, nil)
@@ -70,6 +88,12 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	// Make the request
 	var carResponse car.CarResponse
 	if err := Do(c.httpClient, request, &carResponse); err != nil {
+		var responseErr car.CarResponseError
+		if errors.As(err, &responseErr) {
+			if responseErr.StatusCode == http.StatusNotFound {
+				return car.Car{}, ErrCarNotFound
+			}
+		}
 		return car.Car{}, err
 	}
 
