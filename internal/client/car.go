@@ -15,9 +15,13 @@ var (
 	// ErrEmptyCarID indicates that an empty car ID was provided.
 	ErrEmptyCarID = errors.New("empty car ID")
 	// ErrCarNotFound indicates that the requested car could not be found.
-	ErrCarNotFound       = errors.New("car not found")
-	ErrCarMakeIsRequired = errors.New("make is required")
-	ErrUnknown           = errors.New("unknown error")
+	ErrCarNotFound           = errors.New("car not found")
+	ErrCarMakeIsRequired     = errors.New("make is required")
+	ErrCarModelIsRequired    = errors.New("model is required")
+	ErrCarColorIsRequired    = errors.New("color is required")
+	ErrCarCategoryIsRequired = errors.New("category is required")
+	ErrCarInvalidYear        = errors.New("year is not valid")
+	ErrUnknown               = errors.New("unknown error")
 )
 
 // Car defines the operations available for interacting with the Cars API.
@@ -151,6 +155,18 @@ func (c *carClient) CreateCar(ctx context.Context, car car.Car) error {
 func (c *carClient) translateValidationError(validationErr CarValidationError) error {
 	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "make is required" {
 		return ErrCarMakeIsRequired
+	}
+	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "model is required" {
+		return ErrCarModelIsRequired
+	}
+	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "color is required" {
+		return ErrCarColorIsRequired
+	}
+	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "category is required" {
+		return ErrCarCategoryIsRequired
+	}
+	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "year is not valid" {
+		return ErrCarInvalidYear
 	}
 	return ErrUnknown
 }

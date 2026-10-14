@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/rodolfodiazr/cars-cli/internal/car"
 	"github.com/rodolfodiazr/cars-cli/internal/client"
 )
 
@@ -46,11 +45,15 @@ func run() error {
 	fmt.Printf("\n\n%s | %s | %s | %d\n\n", c.ID, c.Make, c.Model, c.Year)
 
 	// Create a new car
-	inputs := car.Car{
-		Make: "",
+	/*inputs := car.Car{
+		Make:     "Ford",
+		Model:    "--",
+		Color:    "Red",
+		Category: "--",
+		Year:     2010,
 	}
 	if err := sdk.CreateCar(ctx, inputs); err != nil {
 		return err
-	}
+	}*/
 	return nil
 }
