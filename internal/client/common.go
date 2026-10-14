@@ -8,9 +8,21 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/rodolfodiazr/cars-cli/internal/car"
 )
+
+// HttpResponseError represents an HTTP response with a status code indicating
+// a client or server error. It includes the request URL and response body
+// to provide additional context about the failure.
+type HttpResponseError struct {
+	StatusCode   int
+	RequestURL   *url.URL
+	ResponseBody string
+}
+
+// Error implements the error interface.
+func (e HttpResponseError) Error() string {
+	return fmt.Sprintf("Status %d: Request URL: %v Error Body: %s", e.StatusCode, e.RequestURL, e.ResponseBody)
+}
 
 // HttpClient defines a HTTP client that supports mocking.
 //
@@ -62,7 +74,7 @@ func Do(httpClient HttpClient, request *http.Request, v any) error {
 
 	// Handle errors
 	if resp.StatusCode >= http.StatusBadRequest {
-		return car.CarResponseError{
+		return HttpResponseError{
 			StatusCode:   resp.StatusCode,
 			RequestURL:   request.URL,
 			ResponseBody: string(rawBody),

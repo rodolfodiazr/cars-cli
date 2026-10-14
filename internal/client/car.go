@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,10 +12,15 @@ import (
 )
 
 var (
-	ErrEmptyCarID  = errors.New("empty car ID")
-	ErrCarNotFound = errors.New("car not found")
+	// ErrEmptyCarID indicates that an empty car ID was provided.
+	ErrEmptyCarID = errors.New("empty car ID")
+	// ErrCarNotFound indicates that the requested car could not be found.
+	ErrCarNotFound       = errors.New("car not found")
+	ErrCarMakeIsRequired = errors.New("make is required")
+	ErrUnknown           = errors.New("unknown error")
 )
 
+// Car defines the operations available for interacting with the Cars API.
 type Car interface {
 	ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error)
 	GetCar(ctx context.Context, carID string) (car.Car, error)
@@ -27,12 +33,14 @@ type carClient struct {
 	httpClient HttpClient
 }
 
+// NewCarClient creates a Car client that uses httpClient to send HTTP requests.
 func NewCarClient(httpClient *http.Client) Car {
 	return &carClient{
 		httpClient: httpClient,
 	}
 }
 
+// ListCars retrieves cars matching the specified filters.
 func (c *carClient) ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error) {
 	path := "/cars"
 
@@ -55,7 +63,7 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 	request = request.WithContext(ctx)
 
 	// Make the request
-	var carsResponse car.CarsResponse
+	var carsResponse CarsResponse
 	if err := Do(c.httpClient, request, &carsResponse); err != nil {
 		return nil, err
 	}
@@ -72,6 +80,7 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 	return cars, nil
 }
 
+// GetCar retrieves a car by its ID.
 func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	if carID == "" {
 		return car.Car{}, ErrEmptyCarID
@@ -86,9 +95,9 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	request = request.WithContext(ctx)
 
 	// Make the request
-	var carResponse car.CarResponse
+	var carResponse CarResponse
 	if err := Do(c.httpClient, request, &carResponse); err != nil {
-		var responseErr car.CarResponseError
+		var responseErr HttpResponseError
 		if errors.As(err, &responseErr) {
 			if responseErr.StatusCode == http.StatusNotFound {
 				return car.Car{}, ErrCarNotFound
@@ -106,8 +115,44 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 }
 
 func (c *carClient) CreateCar(ctx context.Context, car car.Car) error {
-	// POST /cars
+	path := "/cars"
+
+	payload := CarRequest{
+		Make:     car.Make,
+		Model:    car.Model,
+		Color:    car.Color,
+		Category: car.Category,
+		Year:     car.Year,
+	}
+
+	request, err := BuildRequest(http.MethodPost, "http://localhost:8080", path, nil, payload)
+	if err != nil {
+		return err
+	}
+	request = request.WithContext(ctx)
+
+	// Make the request
+	if err := Do(c.httpClient, request, nil); err != nil {
+		var responseErr HttpResponseError
+		if errors.As(err, &responseErr) {
+			if responseErr.StatusCode == http.StatusBadRequest {
+				var validationErr CarValidationError
+				if err := json.Unmarshal([]byte(responseErr.ResponseBody), &validationErr); err != nil {
+					return err
+				}
+				return c.translateValidationError(validationErr)
+			}
+		}
+		return err
+	}
 	return nil
+}
+
+func (c *carClient) translateValidationError(validationErr CarValidationError) error {
+	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "make is required" {
+		return ErrCarMakeIsRequired
+	}
+	return ErrUnknown
 }
 
 func (c *carClient) UpdateCar(ctx context.Context, car car.Car) error {
