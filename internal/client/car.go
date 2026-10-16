@@ -28,8 +28,8 @@ var (
 type Car interface {
 	ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error)
 	GetCar(ctx context.Context, carID string) (car.Car, error)
-	CreateCar(ctx context.Context, car car.Car) error
-	UpdateCar(ctx context.Context, car car.Car) error
+	CreateCar(ctx context.Context, car car.Car) (string, error)
+	UpdateCar(ctx context.Context, carID string, car car.Car) error
 	DeleteCar(ctx context.Context, carID string) error
 }
 
@@ -75,7 +75,7 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 	cars := []car.Car{}
 	for _, c := range carsResponse {
 		cars = append(cars, car.Car{
-			ID:    c.ID,
+			ID:    c.CarID,
 			Make:  c.Make,
 			Model: c.Model,
 			Year:  c.Year,
@@ -111,17 +111,17 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	}
 
 	return car.Car{
-		ID:    carResponse.ID,
+		ID:    carResponse.CarID,
 		Make:  carResponse.Make,
 		Model: carResponse.Model,
 		Year:  carResponse.Year,
 	}, nil
 }
 
-func (c *carClient) CreateCar(ctx context.Context, car car.Car) error {
+func (c *carClient) CreateCar(ctx context.Context, car car.Car) (string, error) {
 	path := "/cars"
 
-	payload := CarRequest{
+	payload := CreateCarRequest{
 		Make:     car.Make,
 		Model:    car.Model,
 		Color:    car.Color,
@@ -130,6 +130,41 @@ func (c *carClient) CreateCar(ctx context.Context, car car.Car) error {
 	}
 
 	request, err := BuildRequest(http.MethodPost, "http://localhost:8080", path, nil, payload)
+	if err != nil {
+		return "", err
+	}
+	request = request.WithContext(ctx)
+
+	// Make the request
+	var response CarResponse
+	if err := Do(c.httpClient, request, &response); err != nil {
+		var responseErr HttpResponseError
+		if errors.As(err, &responseErr) {
+			if responseErr.StatusCode == http.StatusBadRequest {
+				var validationErr CarValidationError
+				if err := json.Unmarshal([]byte(responseErr.ResponseBody), &validationErr); err != nil {
+					return "", err
+				}
+				return "", c.translateValidationError(validationErr)
+			}
+		}
+		return "", err
+	}
+	return response.CarID, nil
+}
+
+func (c *carClient) UpdateCar(ctx context.Context, carID string, car car.Car) error {
+	path := fmt.Sprintf("/cars/%s", carID)
+
+	payload := UpdateCarRequest{
+		Make:     car.Make,
+		Model:    car.Model,
+		Color:    car.Color,
+		Category: car.Category,
+		Year:     car.Year,
+	}
+
+	request, err := BuildRequest(http.MethodPut, "http://localhost:8080", path, nil, payload)
 	if err != nil {
 		return err
 	}
@@ -152,6 +187,11 @@ func (c *carClient) CreateCar(ctx context.Context, car car.Car) error {
 	return nil
 }
 
+func (c *carClient) DeleteCar(ctx context.Context, carID string) error {
+	// DELETE /cars/{id}
+	return nil
+}
+
 func (c *carClient) translateValidationError(validationErr CarValidationError) error {
 	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "make is required" {
 		return ErrCarMakeIsRequired
@@ -169,42 +209,4 @@ func (c *carClient) translateValidationError(validationErr CarValidationError) e
 		return ErrCarInvalidYear
 	}
 	return ErrUnknown
-}
-
-func (c *carClient) UpdateCar(ctx context.Context, car car.Car) error {
-	// url := fmt.Sprintf("%s/cars/%s", c.baseURL, car.ID)
-
-	// body, err := json.Marshal(car)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// req, err := http.NewRequestWithContext(
-	// 	ctx,
-	// 	http.MethodPut,
-	// 	url,
-	// 	bytes.NewReader(body),
-	// )
-	// if err != nil {
-	// 	return err
-	// }
-
-	// req.Header.Set("Content-Type", "application/json")
-
-	// resp, err := c.httpClient.Do(req)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer resp.Body.Close()
-
-	// if resp.StatusCode != http.StatusOK {
-	// 	return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	// }
-
-	return nil
-}
-
-func (c *carClient) DeleteCar(ctx context.Context, carID string) error {
-	// DELETE /cars/{id}
-	return nil
 }
