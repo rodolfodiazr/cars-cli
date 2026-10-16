@@ -118,6 +118,7 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	}, nil
 }
 
+// CreateCar inserts a new car.
 func (c *carClient) CreateCar(ctx context.Context, car car.Car) (string, error) {
 	path := "/cars"
 
@@ -153,6 +154,7 @@ func (c *carClient) CreateCar(ctx context.Context, car car.Car) (string, error) 
 	return response.CarID, nil
 }
 
+// UpdateCar updates a car by its id.
 func (c *carClient) UpdateCar(ctx context.Context, carID string, car car.Car) error {
 	path := fmt.Sprintf("/cars/%s", carID)
 
