@@ -27,26 +27,8 @@ func run() error {
 
 	sdk := client.NewCarClient(http.DefaultClient)
 
-	// Retrieve the list of cars from the Cars API
-	cars, err := sdk.ListCars(ctx, "", "", 0)
-	if err != nil {
-		return err
-	}
-
-	for index, c := range cars {
-		fmt.Printf("%d | %s | %s | %s | %d\n", (index + 1), c.ID, c.Make, c.Model, c.Year)
-	}
-
-	// Retrieve a car from the Cars API
-	c, err := sdk.GetCar(ctx, "1I3XJRLLC")
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("\n\n%s | %s | %s | %d\n\n", c.ID, c.Make, c.Model, c.Year)
-
 	// Create a new car
-	newCar := car.Car{
+	newCar := car.CreateCar{
 		Make:     "Ford",
 		Model:    "F10",
 		Color:    "Silver",
@@ -57,9 +39,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("\nCar created: %s | %s | %s | %d\n\n", carID, newCar.Make, newCar.Model, newCar.Year)
 
 	// Update an existing car
-	updatedCar := car.Car{
+	updatedCar := car.UpdateCar{
 		Make:     "Ford",
 		Model:    "F10",
 		Color:    "Silver",
@@ -69,6 +52,30 @@ func run() error {
 	if err := sdk.UpdateCar(ctx, carID, updatedCar); err != nil {
 		return err
 	}
+	fmt.Printf("Car updated: %s | %s | %s | %d\n\n", carID, updatedCar.Make, updatedCar.Model, updatedCar.Year)
 
+	// Retrieve a car from the Cars API
+	c, err := sdk.GetCar(ctx, carID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Car retrieved: %s | %s | %s | %d\n\n", c.ID, c.Make, c.Model, c.Year)
+
+	// Delete a car from the Cars API
+	if err := sdk.DeleteCar(ctx, carID); err != nil {
+		return err
+	}
+
+	fmt.Println("Cars retrieved:")
+
+	// Retrieve the list of cars from the Cars API
+	cars, err := sdk.ListCars(ctx, "", "", 0)
+	if err != nil {
+		return err
+	}
+
+	for index, c := range cars {
+		fmt.Printf("%d | %s | %s | %s | %d\n", (index + 1), c.ID, c.Make, c.Model, c.Year)
+	}
 	return nil
 }

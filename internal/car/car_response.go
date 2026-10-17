@@ -1,7 +1,7 @@
 package car
 
-// Car represents a car
-type Car struct {
+// CarResponse ...
+type CarResponse struct {
 	ID       string
 	Make     string
 	Model    string
@@ -9,3 +9,6 @@ type Car struct {
 	Category string
 	Year     int
 }
+
+// CarsResponse ...
+type CarsResponse []CarResponse

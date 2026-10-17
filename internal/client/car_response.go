@@ -2,10 +2,12 @@ package client
 
 // CarResponse represents a car as returned by the API.
 type CarResponse struct {
-	CarID string `json:"id"`
-	Make  string `json:"make"`
-	Model string `json:"model"`
-	Year  int    `json:"year"`
+	CarID    string `json:"id"`
+	Make     string `json:"make"`
+	Model    string `json:"model"`
+	Color    string `json:"color"`
+	Category string `json:"category"`
+	Year     int    `json:"year"`
 }
 
 // CarsResponse represents a collection of cars returned by the API.

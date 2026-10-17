@@ -86,7 +86,6 @@ func Do(httpClient HttpClient, request *http.Request, v any) error {
 		if err := json.Unmarshal(rawBody, v); err != nil {
 			return err
 		}
-		fmt.Println("v: ", v)
 	}
 
 	return nil

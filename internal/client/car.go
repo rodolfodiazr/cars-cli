@@ -26,10 +26,10 @@ var (
 
 // Car defines the operations available for interacting with the Cars API.
 type Car interface {
-	ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error)
-	GetCar(ctx context.Context, carID string) (car.Car, error)
-	CreateCar(ctx context.Context, car car.Car) (string, error)
-	UpdateCar(ctx context.Context, carID string, car car.Car) error
+	ListCars(ctx context.Context, make, model string, year int) (car.CarsResponse, error)
+	GetCar(ctx context.Context, carID string) (car.CarResponse, error)
+	CreateCar(ctx context.Context, req car.CreateCar) (string, error)
+	UpdateCar(ctx context.Context, carID string, req car.UpdateCar) error
 	DeleteCar(ctx context.Context, carID string) error
 }
 
@@ -45,7 +45,7 @@ func NewCarClient(httpClient *http.Client) Car {
 }
 
 // ListCars retrieves cars matching the specified filters.
-func (c *carClient) ListCars(ctx context.Context, make, model string, year int) ([]car.Car, error) {
+func (c *carClient) ListCars(ctx context.Context, make, model string, year int) (car.CarsResponse, error) {
 	path := "/cars"
 
 	// Set query params
@@ -62,7 +62,7 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 
 	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, params, nil)
 	if err != nil {
-		return []car.Car{}, err
+		return car.CarsResponse{}, err
 	}
 	request = request.WithContext(ctx)
 
@@ -72,29 +72,30 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 		return nil, err
 	}
 
-	cars := []car.Car{}
+	cars := car.CarsResponse{}
 	for _, c := range carsResponse {
-		cars = append(cars, car.Car{
-			ID:    c.CarID,
-			Make:  c.Make,
-			Model: c.Model,
-			Year:  c.Year,
+		cars = append(cars, car.CarResponse{
+			ID:       c.CarID,
+			Make:     c.Make,
+			Model:    c.Model,
+			Color:    c.Color,
+			Category: c.Category,
+			Year:     c.Year,
 		})
 	}
 	return cars, nil
 }
 
 // GetCar retrieves a car by its ID.
-func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
+func (c *carClient) GetCar(ctx context.Context, carID string) (car.CarResponse, error) {
 	if carID == "" {
-		return car.Car{}, ErrEmptyCarID
+		return car.CarResponse{}, ErrEmptyCarID
 	}
-
 	path := fmt.Sprintf("/cars/%s", carID)
 
 	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, nil, nil)
 	if err != nil {
-		return car.Car{}, err
+		return car.CarResponse{}, err
 	}
 	request = request.WithContext(ctx)
 
@@ -104,30 +105,32 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 		var responseErr HttpResponseError
 		if errors.As(err, &responseErr) {
 			if responseErr.StatusCode == http.StatusNotFound {
-				return car.Car{}, ErrCarNotFound
+				return car.CarResponse{}, ErrCarNotFound
 			}
 		}
-		return car.Car{}, err
+		return car.CarResponse{}, err
 	}
 
-	return car.Car{
-		ID:    carResponse.CarID,
-		Make:  carResponse.Make,
-		Model: carResponse.Model,
-		Year:  carResponse.Year,
+	return car.CarResponse{
+		ID:       carResponse.CarID,
+		Make:     carResponse.Make,
+		Model:    carResponse.Model,
+		Color:    carResponse.Color,
+		Category: carResponse.Category,
+		Year:     carResponse.Year,
 	}, nil
 }
 
 // CreateCar inserts a new car.
-func (c *carClient) CreateCar(ctx context.Context, car car.Car) (string, error) {
+func (c *carClient) CreateCar(ctx context.Context, req car.CreateCar) (string, error) {
 	path := "/cars"
 
 	payload := CreateCarRequest{
-		Make:     car.Make,
-		Model:    car.Model,
-		Color:    car.Color,
-		Category: car.Category,
-		Year:     car.Year,
+		Make:     req.Make,
+		Model:    req.Model,
+		Color:    req.Color,
+		Category: req.Category,
+		Year:     req.Year,
 	}
 
 	request, err := BuildRequest(http.MethodPost, "http://localhost:8080", path, nil, payload)
@@ -155,15 +158,18 @@ func (c *carClient) CreateCar(ctx context.Context, car car.Car) (string, error) 
 }
 
 // UpdateCar updates a car by its id.
-func (c *carClient) UpdateCar(ctx context.Context, carID string, car car.Car) error {
+func (c *carClient) UpdateCar(ctx context.Context, carID string, req car.UpdateCar) error {
+	if carID == "" {
+		return ErrEmptyCarID
+	}
 	path := fmt.Sprintf("/cars/%s", carID)
 
 	payload := UpdateCarRequest{
-		Make:     car.Make,
-		Model:    car.Model,
-		Color:    car.Color,
-		Category: car.Category,
-		Year:     car.Year,
+		Make:     req.Make,
+		Model:    req.Model,
+		Color:    req.Color,
+		Category: req.Category,
+		Year:     req.Year,
 	}
 
 	request, err := BuildRequest(http.MethodPut, "http://localhost:8080", path, nil, payload)
@@ -190,24 +196,48 @@ func (c *carClient) UpdateCar(ctx context.Context, carID string, car car.Car) er
 }
 
 func (c *carClient) DeleteCar(ctx context.Context, carID string) error {
-	// DELETE /cars/{id}
+	if carID == "" {
+		return ErrEmptyCarID
+	}
+	path := fmt.Sprintf("/cars/%s", carID)
+
+	request, err := BuildRequest(http.MethodDelete, "http://localhost:8080", path, nil, nil)
+	if err != nil {
+		return err
+	}
+	request = request.WithContext(ctx)
+
+	// Make the request
+	if err := Do(c.httpClient, request, nil); err != nil {
+		var responseErr HttpResponseError
+		if errors.As(err, &responseErr) {
+			var responseErr HttpResponseError
+			if errors.As(err, &responseErr) {
+				if responseErr.StatusCode == http.StatusNotFound {
+					return ErrCarNotFound
+				}
+			}
+			return err
+		}
+		return err
+	}
 	return nil
 }
 
 func (c *carClient) translateValidationError(validationErr CarValidationError) error {
-	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "make is required" {
+	if validationErr.Details == "make is required" {
 		return ErrCarMakeIsRequired
 	}
-	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "model is required" {
+	if validationErr.Details == "model is required" {
 		return ErrCarModelIsRequired
 	}
-	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "color is required" {
+	if validationErr.Details == "color is required" {
 		return ErrCarColorIsRequired
 	}
-	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "category is required" {
+	if validationErr.Details == "category is required" {
 		return ErrCarCategoryIsRequired
 	}
-	if validationErr.Code == "VALIDATION_FAILED" && validationErr.Details == "year is not valid" {
+	if validationErr.Details == "year is not valid" {
 		return ErrCarInvalidYear
 	}
 	return ErrUnknown
