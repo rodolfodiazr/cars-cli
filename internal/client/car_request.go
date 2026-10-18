@@ -1,5 +1,6 @@
 package client
 
+// CreateCarRequest represents the JSON payload sent to create a car.
 type CreateCarRequest struct {
 	Make     string `json:"make"`
 	Model    string `json:"model"`
@@ -8,6 +9,7 @@ type CreateCarRequest struct {
 	Year     int    `json:"year"`
 }
 
+// UpdateCarRequest represents the JSON payload sent to update a car.
 type UpdateCarRequest struct {
 	Make     string `json:"make"`
 	Model    string `json:"model"`

@@ -65,6 +65,7 @@ func run() error {
 	if err := sdk.DeleteCar(ctx, carID); err != nil {
 		return err
 	}
+	fmt.Printf("Car deleted: %s | %s | %s | %d\n\n", c.ID, c.Make, c.Model, c.Year)
 
 	fmt.Println("Cars retrieved:")
 

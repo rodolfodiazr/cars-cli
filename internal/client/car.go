@@ -15,19 +15,25 @@ var (
 	// ErrEmptyCarID indicates that an empty car ID was provided.
 	ErrEmptyCarID = errors.New("empty car ID")
 	// ErrCarNotFound indicates that the requested car could not be found.
-	ErrCarNotFound           = errors.New("car not found")
-	ErrCarMakeIsRequired     = errors.New("make is required")
-	ErrCarModelIsRequired    = errors.New("model is required")
-	ErrCarColorIsRequired    = errors.New("color is required")
+	ErrCarNotFound = errors.New("car not found")
+	// ErrCarMakeIsRequired indicates that the car make was not provided.
+	ErrCarMakeIsRequired = errors.New("make is required")
+	// ErrCarModelIsRequired indicates that the car model was not provided.
+	ErrCarModelIsRequired = errors.New("model is required")
+	// ErrCarColorIsRequired indicates that the car color was not provided.
+	ErrCarColorIsRequired = errors.New("color is required")
+	// ErrCarCategoryIsRequired indicates that the car category was not provided.
 	ErrCarCategoryIsRequired = errors.New("category is required")
-	ErrCarInvalidYear        = errors.New("year is not valid")
-	ErrUnknown               = errors.New("unknown error")
+	// ErrCarInvalidYear indicates that the car year is invalid.
+	ErrCarInvalidYear = errors.New("year is not valid")
+	// ErrUnknown indicates that an error occurred whose cause could not be determined.
+	ErrUnknown = errors.New("unknown error")
 )
 
 // Car defines the operations available for interacting with the Cars API.
 type Car interface {
-	ListCars(ctx context.Context, make, model string, year int) (car.CarsResponse, error)
-	GetCar(ctx context.Context, carID string) (car.CarResponse, error)
+	ListCars(ctx context.Context, make, model string, year int) (car.Cars, error)
+	GetCar(ctx context.Context, carID string) (car.Car, error)
 	CreateCar(ctx context.Context, req car.CreateCar) (string, error)
 	UpdateCar(ctx context.Context, carID string, req car.UpdateCar) error
 	DeleteCar(ctx context.Context, carID string) error
@@ -45,7 +51,7 @@ func NewCarClient(httpClient *http.Client) Car {
 }
 
 // ListCars retrieves cars matching the specified filters.
-func (c *carClient) ListCars(ctx context.Context, make, model string, year int) (car.CarsResponse, error) {
+func (c *carClient) ListCars(ctx context.Context, make, model string, year int) (car.Cars, error) {
 	path := "/cars"
 
 	// Set query params
@@ -62,7 +68,7 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 
 	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, params, nil)
 	if err != nil {
-		return car.CarsResponse{}, err
+		return car.Cars{}, err
 	}
 	request = request.WithContext(ctx)
 
@@ -72,9 +78,9 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 		return nil, err
 	}
 
-	cars := car.CarsResponse{}
+	cars := car.Cars{}
 	for _, c := range carsResponse {
-		cars = append(cars, car.CarResponse{
+		cars = append(cars, car.Car{
 			ID:       c.CarID,
 			Make:     c.Make,
 			Model:    c.Model,
@@ -87,15 +93,15 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 }
 
 // GetCar retrieves a car by its ID.
-func (c *carClient) GetCar(ctx context.Context, carID string) (car.CarResponse, error) {
+func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	if carID == "" {
-		return car.CarResponse{}, ErrEmptyCarID
+		return car.Car{}, ErrEmptyCarID
 	}
 	path := fmt.Sprintf("/cars/%s", carID)
 
 	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, nil, nil)
 	if err != nil {
-		return car.CarResponse{}, err
+		return car.Car{}, err
 	}
 	request = request.WithContext(ctx)
 
@@ -105,13 +111,13 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.CarResponse, 
 		var responseErr HttpResponseError
 		if errors.As(err, &responseErr) {
 			if responseErr.StatusCode == http.StatusNotFound {
-				return car.CarResponse{}, ErrCarNotFound
+				return car.Car{}, ErrCarNotFound
 			}
 		}
-		return car.CarResponse{}, err
+		return car.Car{}, err
 	}
 
-	return car.CarResponse{
+	return car.Car{
 		ID:       carResponse.CarID,
 		Make:     carResponse.Make,
 		Model:    carResponse.Model,
@@ -195,6 +201,7 @@ func (c *carClient) UpdateCar(ctx context.Context, carID string, req car.UpdateC
 	return nil
 }
 
+// DeleteCar deletes a car by its id.
 func (c *carClient) DeleteCar(ctx context.Context, carID string) error {
 	if carID == "" {
 		return ErrEmptyCarID
@@ -211,13 +218,9 @@ func (c *carClient) DeleteCar(ctx context.Context, carID string) error {
 	if err := Do(c.httpClient, request, nil); err != nil {
 		var responseErr HttpResponseError
 		if errors.As(err, &responseErr) {
-			var responseErr HttpResponseError
-			if errors.As(err, &responseErr) {
-				if responseErr.StatusCode == http.StatusNotFound {
-					return ErrCarNotFound
-				}
+			if responseErr.StatusCode == http.StatusNotFound {
+				return ErrCarNotFound
 			}
-			return err
 		}
 		return err
 	}

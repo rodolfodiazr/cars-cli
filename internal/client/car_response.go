@@ -1,6 +1,6 @@
 package client
 
-// CarResponse represents a car as returned by the API.
+// CarResponse represents a car returned by the Cars API.
 type CarResponse struct {
 	CarID    string `json:"id"`
 	Make     string `json:"make"`
@@ -10,10 +10,10 @@ type CarResponse struct {
 	Year     int    `json:"year"`
 }
 
-// CarsResponse represents a collection of cars returned by the API.
+// CarsResponse represents a collection of cars returned by the Cars API.
 type CarsResponse []CarResponse
 
-// CarValidationError ...
+// CarValidationError represents a validation error returned by the Cars API.
 type CarValidationError struct {
 	Error   string `json:"error"`
 	Code    string `json:"code"`
