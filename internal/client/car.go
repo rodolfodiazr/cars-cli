@@ -40,12 +40,14 @@ type Car interface {
 }
 
 type carClient struct {
+	basePath   string
 	httpClient HttpClient
 }
 
 // NewCarClient creates a Car client that uses httpClient to send HTTP requests.
-func NewCarClient(httpClient *http.Client) Car {
+func NewCarClient(httpClient *http.Client, basePath string) Car {
 	return &carClient{
+		basePath:   basePath,
 		httpClient: httpClient,
 	}
 }
@@ -66,7 +68,7 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 		params.Add("year", fmt.Sprintf("%d", year))
 	}
 
-	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, params, nil)
+	request, err := BuildRequest(http.MethodGet, c.basePath, path, params, nil)
 	if err != nil {
 		return car.Cars{}, err
 	}
@@ -99,7 +101,7 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 	}
 	path := fmt.Sprintf("/cars/%s", carID)
 
-	request, err := BuildRequest(http.MethodGet, "http://localhost:8080", path, nil, nil)
+	request, err := BuildRequest(http.MethodGet, c.basePath, path, nil, nil)
 	if err != nil {
 		return car.Car{}, err
 	}
@@ -139,7 +141,7 @@ func (c *carClient) CreateCar(ctx context.Context, req car.CreateCar) (string, e
 		Year:     req.Year,
 	}
 
-	request, err := BuildRequest(http.MethodPost, "http://localhost:8080", path, nil, payload)
+	request, err := BuildRequest(http.MethodPost, c.basePath, path, nil, payload)
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +180,7 @@ func (c *carClient) UpdateCar(ctx context.Context, carID string, req car.UpdateC
 		Year:     req.Year,
 	}
 
-	request, err := BuildRequest(http.MethodPut, "http://localhost:8080", path, nil, payload)
+	request, err := BuildRequest(http.MethodPut, c.basePath, path, nil, payload)
 	if err != nil {
 		return err
 	}
@@ -208,7 +210,7 @@ func (c *carClient) DeleteCar(ctx context.Context, carID string) error {
 	}
 	path := fmt.Sprintf("/cars/%s", carID)
 
-	request, err := BuildRequest(http.MethodDelete, "http://localhost:8080", path, nil, nil)
+	request, err := BuildRequest(http.MethodDelete, c.basePath, path, nil, nil)
 	if err != nil {
 		return err
 	}

@@ -25,7 +25,7 @@ func main() {
 func run() error {
 	ctx := context.Background()
 
-	sdk := client.NewCarClient(http.DefaultClient)
+	sdk := client.NewCarClient(http.DefaultClient, "http://localhost:8080")
 
 	// Create a new car
 	newCar := car.CreateCar{
