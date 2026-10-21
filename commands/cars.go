@@ -11,6 +11,7 @@ import (
 
 type CarClient interface {
 	ListCars(ctx context.Context, make, model string, year int) (car.Cars, error)
+	GetCar(ctx context.Context, carID string) (car.Car, error)
 }
 
 type Cars struct {
@@ -45,5 +46,20 @@ func (c *Cars) List(ctx context.Context, make, model string, year int) error {
 	}
 
 	fmt.Printf("%d cars found.\n", len(cars))
+	return nil
+}
+
+func (c *Cars) Get(ctx context.Context, carID string) error {
+	result, err := c.client.GetCar(ctx, carID)
+	if err != nil {
+		return fmt.Errorf("get car %s: %w", carID, err)
+	}
+
+	fmt.Printf("ID:       %s\n", result.ID)
+	fmt.Printf("Make:     %s\n", result.Make)
+	fmt.Printf("Model:    %s\n", result.Model)
+	fmt.Printf("Color:    %s\n", result.Color)
+	fmt.Printf("Category: %s\n", result.Category)
+	fmt.Printf("Year:     %d\n", result.Year)
 	return nil
 }

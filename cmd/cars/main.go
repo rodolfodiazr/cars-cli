@@ -33,61 +33,18 @@ func run() error {
 
 	switch os.Args[1] {
 	case "list":
+		if len(os.Args) != 2 {
+			return fmt.Errorf("usage: cars list")
+		}
 		return cars.List(ctx, "", "", 0)
+
+	case "get":
+		if len(os.Args) != 4 || os.Args[2] != "-i" {
+			return fmt.Errorf("usage: cars get -i <carID>")
+		}
+		return cars.Get(ctx, os.Args[3])
+
 	default:
-		return fmt.Errorf("unknown command %q: available command: list", os.Args[1])
+		return fmt.Errorf("unknown command %q: available commands: list, get", os.Args[1])
 	}
-	/*
-		// Create a new car
-		newCar := car.CreateCar{
-			Make:     "Ford",
-			Model:    "F10",
-			Color:    "Silver",
-			Category: "Truck",
-			Year:     2010,
-		}
-		carID, err := sdk.CreateCar(ctx, newCar)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("\nCar created: %s | %s | %s | %d\n\n", carID, newCar.Make, newCar.Model, newCar.Year)
-
-		// Update an existing car
-		updatedCar := car.UpdateCar{
-			Make:     "Ford",
-			Model:    "F10",
-			Color:    "Silver",
-			Category: "Truck",
-			Year:     2012,
-		}
-		if err := sdk.UpdateCar(ctx, carID, updatedCar); err != nil {
-			return err
-		}
-		fmt.Printf("Car updated: %s | %s | %s | %d\n\n", carID, updatedCar.Make, updatedCar.Model, updatedCar.Year)
-
-		// Retrieve a car from the Cars API
-		c, err := sdk.GetCar(ctx, carID)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Car retrieved: %s | %s | %s | %d\n\n", c.ID, c.Make, c.Model, c.Year)
-
-		// Delete a car from the Cars API
-		if err := sdk.DeleteCar(ctx, carID); err != nil {
-			return err
-		}
-		fmt.Printf("Car deleted: %s | %s | %s | %d\n\n", c.ID, c.Make, c.Model, c.Year)
-
-		fmt.Println("Cars retrieved:")
-
-		// Retrieve the list of cars from the Cars API
-		cars, err := sdk.ListCars(ctx, "", "", 0)
-		if err != nil {
-			return err
-		}
-
-		for index, c := range cars {
-			fmt.Printf("%d | %s | %s | %s | %d\n", (index + 1), c.ID, c.Make, c.Model, c.Year)
-		}
-	*/
 }
