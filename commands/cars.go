@@ -7,19 +7,15 @@ import (
 	"text/tabwriter"
 
 	"github.com/rodolfodiazr/cars-cli/internal/car"
+	"github.com/rodolfodiazr/cars-cli/internal/client"
 )
 
-type CarClient interface {
-	ListCars(ctx context.Context, make, model string, year int) (car.Cars, error)
-	GetCar(ctx context.Context, carID string) (car.Car, error)
-}
-
 type Cars struct {
-	client CarClient
+	client client.Car
 }
 
-func NewCars(client CarClient) *Cars {
-	return &Cars{client: client}
+func NewCars(client client.Car) Cars {
+	return Cars{client: client}
 }
 
 func (c *Cars) List(ctx context.Context, make, model string, year int) error {
@@ -61,5 +57,17 @@ func (c *Cars) Get(ctx context.Context, carID string) error {
 	fmt.Printf("Color:    %s\n", result.Color)
 	fmt.Printf("Category: %s\n", result.Category)
 	fmt.Printf("Year:     %d\n", result.Year)
+	return nil
+}
+
+func (c *Cars) Create(ctx context.Context, input car.CreateCar) error {
+	carID, err := c.client.CreateCar(ctx, input)
+	if err != nil {
+		return fmt.Errorf("create car: %w", err)
+	}
+
+	fmt.Printf("Car created successfully (ID: %s): %s %s, %d\n",
+		carID, input.Make, input.Model, input.Year)
+
 	return nil
 }
