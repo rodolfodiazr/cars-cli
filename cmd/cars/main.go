@@ -54,8 +54,15 @@ func run() error {
 		}
 		return cars.Create(ctx, input)
 
+	case "update":
+		input, err := toUpdateCar(os.Args[2:])
+		if err != nil {
+			return err
+		}
+		return cars.Update(ctx, os.Args[3], input)
+
 	default:
-		return fmt.Errorf("unknown command %q: available commands: list, get", os.Args[1])
+		return fmt.Errorf("unknown command %q: available commands: list, get, create, update", os.Args[1])
 	}
 }
 
@@ -74,6 +81,30 @@ func toCreateCar(args []string) (car.CreateCar, error) {
 	}
 
 	return car.CreateCar{
+		Make:     *make,
+		Model:    *model,
+		Color:    *color,
+		Category: *category,
+		Year:     *year,
+	}, nil
+}
+
+func toUpdateCar(args []string) (car.UpdateCar, error) {
+	flags := flag.NewFlagSet("create", flag.ContinueOnError)
+	flags.SetOutput(io.Discard)
+
+	_ = flags.String("id", "", "id")
+	make := flags.String("make", "", "make")
+	model := flags.String("model", "", "model")
+	color := flags.String("color", "", "color")
+	category := flags.String("category", "", "category")
+	year := flags.Int("year", 0, "year")
+
+	if err := flags.Parse(args); err != nil {
+		return car.UpdateCar{}, err
+	}
+
+	return car.UpdateCar{
 		Make:     *make,
 		Model:    *model,
 		Color:    *color,

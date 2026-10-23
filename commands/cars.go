@@ -71,3 +71,14 @@ func (c *Cars) Create(ctx context.Context, input car.CreateCar) error {
 
 	return nil
 }
+
+func (c *Cars) Update(ctx context.Context, carID string, input car.UpdateCar) error {
+	if err := c.client.UpdateCar(ctx, carID, input); err != nil {
+		return fmt.Errorf("update car %s: %w", carID, err)
+	}
+
+	fmt.Printf("Car %s updated successfully: %s %s, %d\n",
+		carID, input.Make, input.Model, input.Year)
+
+	return nil
+}
