@@ -82,3 +82,12 @@ func (c *Cars) Update(ctx context.Context, carID string, input car.UpdateCar) er
 
 	return nil
 }
+
+func (c *Cars) Delete(ctx context.Context, carID string) error {
+	if err := c.client.DeleteCar(ctx, carID); err != nil {
+		return fmt.Errorf("delete car %s: %w", carID, err)
+	}
+
+	fmt.Printf("Car %s deleted successfully.\n", carID)
+	return nil
+}

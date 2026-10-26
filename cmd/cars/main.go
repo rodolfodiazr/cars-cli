@@ -50,19 +50,25 @@ func run() error {
 	case "create":
 		input, err := toCreateCar(os.Args[2:])
 		if err != nil {
-			return err
+			return fmt.Errorf("usage: cars create -make <make> -model <model> -color <color> -category <category> -year <year>")
 		}
 		return cars.Create(ctx, input)
 
 	case "update":
 		input, err := toUpdateCar(os.Args[2:])
 		if err != nil {
-			return err
+			return fmt.Errorf("usage: cars update -i <carID> -make <make> -model <model> -color <color> -category <category> -year <year>")
 		}
 		return cars.Update(ctx, os.Args[3], input)
 
+	case "delete":
+		if len(os.Args) != 4 || os.Args[2] != "-i" {
+			return fmt.Errorf("usage: cars delete -i <carID>")
+		}
+		return cars.Delete(ctx, os.Args[3])
+
 	default:
-		return fmt.Errorf("unknown command %q: available commands: list, get, create, update", os.Args[1])
+		return fmt.Errorf("unknown command %q: available commands: list, get, create, update, delete", os.Args[1])
 	}
 }
 
@@ -90,10 +96,10 @@ func toCreateCar(args []string) (car.CreateCar, error) {
 }
 
 func toUpdateCar(args []string) (car.UpdateCar, error) {
-	flags := flag.NewFlagSet("create", flag.ContinueOnError)
+	flags := flag.NewFlagSet("update", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 
-	_ = flags.String("id", "", "id")
+	_ = flags.String("i", "", "id")
 	make := flags.String("make", "", "make")
 	model := flags.String("model", "", "model")
 	color := flags.String("color", "", "color")
