@@ -2,12 +2,17 @@ package car
 
 // Car represents a car in the application.
 type Car struct {
-	ID       string
+	ID string
+
 	Make     string
 	Model    string
 	Color    string
 	Category string
 	Year     int
+
+	Package *string
+	Mileage *int64
+	Price   *int64
 }
 
 // Cars represents a list of car.

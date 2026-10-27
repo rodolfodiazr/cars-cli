@@ -89,6 +89,9 @@ func (c *carClient) ListCars(ctx context.Context, make, model string, year int) 
 			Color:    c.Color,
 			Category: c.Category,
 			Year:     c.Year,
+			Package:  c.Package,
+			Mileage:  c.Mileage,
+			Price:    c.Price,
 		})
 	}
 	return cars, nil
@@ -126,6 +129,9 @@ func (c *carClient) GetCar(ctx context.Context, carID string) (car.Car, error) {
 		Color:    carResponse.Color,
 		Category: carResponse.Category,
 		Year:     carResponse.Year,
+		Package:  carResponse.Package,
+		Mileage:  carResponse.Mileage,
+		Price:    carResponse.Price,
 	}, nil
 }
 

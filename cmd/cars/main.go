@@ -34,6 +34,11 @@ func run() error {
 
 	cars := commands.NewCars(sdk)
 
+	// TODOS:
+	// - Support all the fields in every command
+	// - Add godoc to the different helpers/functions
+	// - Support partial updates
+	// - Enrich the error messages
 	switch os.Args[1] {
 	case "list":
 		if len(os.Args) != 2 {
