@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/rodolfodiazr/cars-cli/commands"
 	"github.com/rodolfodiazr/cars-cli/internal/car"
@@ -41,10 +42,22 @@ func run() error {
 	// - Enrich the error messages
 	switch os.Args[1] {
 	case "list":
-		if len(os.Args) != 2 {
+		if len(os.Args) < 2 || len(os.Args) > 5 {
 			return fmt.Errorf("usage: cars list")
 		}
-		return cars.List(ctx, "", "", 0)
+
+		var make, model string
+		if len(os.Args) > 2 && os.Args[2] != "" {
+			make = os.Args[2]
+		}
+		if len(os.Args) > 3 && os.Args[3] != "" {
+			model = os.Args[3]
+		}
+		var year int
+		if len(os.Args) == 5 && os.Args[4] != "" {
+			year, _ = strconv.Atoi(os.Args[4])
+		}
+		return cars.List(ctx, make, model, year)
 
 	case "get":
 		if len(os.Args) != 4 || os.Args[2] != "-i" {
