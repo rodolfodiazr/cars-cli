@@ -11,6 +11,30 @@ import (
 	"github.com/rodolfodiazr/cars-cli/internal/client"
 )
 
+// ListCarsParams represents the filtering parameters used to list cars.
+type ListCarsParams struct {
+	Make  string
+	Model string
+	Year  int
+}
+
+type UpdateCarParams struct {
+	ID       string
+	Make     string
+	Model    string
+	Color    string
+	Category string
+	Year     int
+}
+
+type CreateCarParams struct {
+	Make     string
+	Model    string
+	Color    string
+	Category string
+	Year     int
+}
+
 type Cars struct {
 	client client.Car
 }
@@ -19,8 +43,8 @@ func NewCars(client client.Car) Cars {
 	return Cars{client: client}
 }
 
-func (c *Cars) List(ctx context.Context, make, model string, year int) error {
-	cars, err := c.client.ListCars(ctx, make, model, year)
+func (c *Cars) List(ctx context.Context, params ListCarsParams) error {
+	cars, err := c.client.ListCars(ctx, params.Make, params.Model, params.Year)
 	if err != nil {
 		return fmt.Errorf("list cars: %w", err)
 	}
@@ -89,25 +113,39 @@ func (c *Cars) Get(ctx context.Context, carID string) error {
 	return nil
 }
 
-func (c *Cars) Create(ctx context.Context, input car.CreateCar) error {
-	carID, err := c.client.CreateCar(ctx, input)
+func (c *Cars) Create(ctx context.Context, params CreateCarParams) error {
+	req := car.CreateCar{
+		Make:     params.Make,
+		Model:    params.Model,
+		Color:    params.Color,
+		Category: params.Category,
+		Year:     params.Year,
+	}
+
+	carID, err := c.client.CreateCar(ctx, req)
 	if err != nil {
 		return fmt.Errorf("create car: %w", err)
 	}
 
-	fmt.Printf("Car created successfully (ID: %s): %s %s, %d\n",
-		carID, input.Make, input.Model, input.Year)
+	fmt.Printf("Car created successfully (ID: %s)", carID)
 
 	return nil
 }
 
-func (c *Cars) Update(ctx context.Context, carID string, input car.UpdateCar) error {
-	if err := c.client.UpdateCar(ctx, carID, input); err != nil {
-		return fmt.Errorf("update car %s: %w", carID, err)
+func (c *Cars) Update(ctx context.Context, params UpdateCarParams) error {
+	req := car.UpdateCar{
+		Make:     params.Make,
+		Model:    params.Model,
+		Color:    params.Color,
+		Category: params.Category,
+		Year:     params.Year,
 	}
 
-	fmt.Printf("Car %s updated successfully: %s %s, %d\n",
-		carID, input.Make, input.Model, input.Year)
+	if err := c.client.UpdateCar(ctx, params.ID, req); err != nil {
+		return fmt.Errorf("update car %s: %w", params.ID, err)
+	}
+
+	fmt.Printf("Car updated successfully (ID: %s)", params.ID)
 
 	return nil
 }

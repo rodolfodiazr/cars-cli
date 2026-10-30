@@ -9,19 +9,18 @@ import (
 	"os"
 
 	"github.com/rodolfodiazr/cars-cli/commands"
-	"github.com/rodolfodiazr/cars-cli/internal/car"
 	"github.com/rodolfodiazr/cars-cli/internal/client"
 )
 
 func main() {
-	if err := run(); err != nil {
+	if err := run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	if len(os.Args) < 2 {
+func run(args []string) error {
+	if len(args) < 2 {
 		return fmt.Errorf("missing command: usage: cars <command>")
 	}
 
@@ -34,118 +33,147 @@ func run() error {
 
 	cars := commands.NewCars(sdk)
 
-	// TODOS:
-	// - Support all the fields in every command
-	// - Add godoc to the different helpers/functions
-	// - Support partial updates
-	// - Enrich the error messages
-	switch os.Args[1] {
+	switch args[0] {
 	case "list":
-		params, err := toListCars(os.Args[2:])
+		params, err := parseListCarsArgs(args[1:])
 		if err != nil {
-			return fmt.Errorf("usage: cars list -make <make> -model <model> -year <year>")
+			return fmt.Errorf("invalid list arguments: %w", err)
 		}
-		return cars.List(ctx, params.Make, params.Model, params.Year)
+		return cars.List(ctx, params)
 
 	case "get":
-		if len(os.Args) != 4 || os.Args[2] != "-i" {
-			return fmt.Errorf("usage: cars get -i <carID>")
+		carID, err := parseCarIDArgs(args[1:])
+		if err != nil {
+			return fmt.Errorf("invalid get arguments: %w", err)
 		}
-		return cars.Get(ctx, os.Args[3])
+		return cars.Get(ctx, carID)
 
 	case "create":
-		input, err := toCreateCar(os.Args[2:])
+		params, err := parseCreateCarArgs(args[1:])
 		if err != nil {
-			return fmt.Errorf("usage: cars create -make <make> -model <model> -color <color> -category <category> -year <year>")
+			return fmt.Errorf("invalid create arguments: %w", err)
 		}
-		return cars.Create(ctx, input)
+		return cars.Create(ctx, params)
 
 	case "update":
-		input, err := toUpdateCar(os.Args[2:])
+		params, err := parseUpdateCarArgs(args[1:])
 		if err != nil {
-			return fmt.Errorf("usage: cars update -i <carID> -make <make> -model <model> -color <color> -category <category> -year <year>")
+			return fmt.Errorf("invalid update arguments: %w", err)
 		}
-		return cars.Update(ctx, os.Args[3], input)
+		return cars.Update(ctx, params)
 
 	case "delete":
-		if len(os.Args) != 4 || os.Args[2] != "-i" {
-			return fmt.Errorf("usage: cars delete -i <carID>")
+		carID, err := parseCarIDArgs(args[1:])
+		if err != nil {
+			return fmt.Errorf("invalid delete arguments: %w", err)
 		}
-		return cars.Delete(ctx, os.Args[3])
+		return cars.Delete(ctx, carID)
 
 	default:
-		return fmt.Errorf("unknown command %q: available commands: list, get, create, update, delete", os.Args[1])
+		return fmt.Errorf("unknown command %q: available commands: list, get, create, update, delete", args[0])
 	}
 }
 
-type ListCarsParams struct {
-	Make  string
-	Model string
-	Year  int
+func parseCarIDArgs(args []string) (string, error) {
+	flags := flag.NewFlagSet("car", flag.ContinueOnError)
+	flags.SetOutput(io.Discard)
+
+	id := flags.String("i", "", "id")
+
+	if err := flags.Parse(args); err != nil {
+		return "", err
+	}
+
+	if flags.NArg() > 0 {
+		return "", fmt.Errorf("unexpected arguments: %v", flags.Args())
+	}
+
+	if *id == "" {
+		return "", fmt.Errorf("missing required flag: -i")
+	}
+
+	return *id, nil
 }
 
-func toListCars(args []string) (ListCarsParams, error) {
+func parseListCarsArgs(args []string) (commands.ListCarsParams, error) {
 	flags := flag.NewFlagSet("list", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 
-	make := flags.String("make", "", "make")
-	model := flags.String("model", "", "model")
-	year := flags.Int("year", 0, "year")
+	carMake := flags.String("make", "", "make")
+	carModel := flags.String("model", "", "model")
+	carYear := flags.Int("year", 0, "year")
 
 	if err := flags.Parse(args); err != nil {
-		return ListCarsParams{}, err
+		return commands.ListCarsParams{}, err
 	}
 
-	return ListCarsParams{
-		Make:  *make,
-		Model: *model,
-		Year:  *year,
+	if flags.NArg() > 0 {
+		return commands.ListCarsParams{}, fmt.Errorf("unexpected arguments: %v", flags.Args())
+	}
+
+	return commands.ListCarsParams{
+		Make:  *carMake,
+		Model: *carModel,
+		Year:  *carYear,
 	}, nil
 }
 
-func toCreateCar(args []string) (car.CreateCar, error) {
+func parseCreateCarArgs(args []string) (commands.CreateCarParams, error) {
 	flags := flag.NewFlagSet("create", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 
-	make := flags.String("make", "", "make")
-	model := flags.String("model", "", "model")
-	color := flags.String("color", "", "color")
-	category := flags.String("category", "", "category")
-	year := flags.Int("year", 0, "year")
+	carMake := flags.String("make", "", "make")
+	carModel := flags.String("model", "", "model")
+	carColor := flags.String("color", "", "color")
+	carCategory := flags.String("category", "", "category")
+	carYear := flags.Int("year", 0, "year")
 
 	if err := flags.Parse(args); err != nil {
-		return car.CreateCar{}, err
+		return commands.CreateCarParams{}, err
 	}
 
-	return car.CreateCar{
-		Make:     *make,
-		Model:    *model,
-		Color:    *color,
-		Category: *category,
-		Year:     *year,
+	if flags.NArg() > 0 {
+		return commands.CreateCarParams{}, fmt.Errorf("unexpected arguments: %v", flags.Args())
+	}
+
+	return commands.CreateCarParams{
+		Make:     *carMake,
+		Model:    *carModel,
+		Color:    *carColor,
+		Category: *carCategory,
+		Year:     *carYear,
 	}, nil
 }
 
-func toUpdateCar(args []string) (car.UpdateCar, error) {
+func parseUpdateCarArgs(args []string) (commands.UpdateCarParams, error) {
 	flags := flag.NewFlagSet("update", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 
-	_ = flags.String("i", "", "id")
-	make := flags.String("make", "", "make")
-	model := flags.String("model", "", "model")
-	color := flags.String("color", "", "color")
-	category := flags.String("category", "", "category")
-	year := flags.Int("year", 0, "year")
+	carID := flags.String("i", "", "id")
+	carMake := flags.String("make", "", "make")
+	carModel := flags.String("model", "", "model")
+	carColor := flags.String("color", "", "color")
+	carCategory := flags.String("category", "", "category")
+	carYear := flags.Int("year", 0, "year")
 
 	if err := flags.Parse(args); err != nil {
-		return car.UpdateCar{}, err
+		return commands.UpdateCarParams{}, err
 	}
 
-	return car.UpdateCar{
-		Make:     *make,
-		Model:    *model,
-		Color:    *color,
-		Category: *category,
-		Year:     *year,
+	if flags.NArg() > 0 {
+		return commands.UpdateCarParams{}, fmt.Errorf("unexpected arguments: %v", flags.Args())
+	}
+
+	if *carID == "" {
+		return commands.UpdateCarParams{}, fmt.Errorf("missing required flag: -i")
+	}
+
+	return commands.UpdateCarParams{
+		ID:       *carID,
+		Make:     *carMake,
+		Model:    *carModel,
+		Color:    *carColor,
+		Category: *carCategory,
+		Year:     *carYear,
 	}, nil
 }
