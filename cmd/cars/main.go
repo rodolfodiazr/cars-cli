@@ -42,7 +42,7 @@ func run(args []string) error {
 		return cars.List(ctx, params)
 
 	case "get":
-		carID, err := parseCarIDArgs(args[1:])
+		carID, err := parseCarIDArg(args[1:])
 		if err != nil {
 			return fmt.Errorf("invalid get arguments: %w", err)
 		}
@@ -63,7 +63,7 @@ func run(args []string) error {
 		return cars.Update(ctx, params)
 
 	case "delete":
-		carID, err := parseCarIDArgs(args[1:])
+		carID, err := parseCarIDArg(args[1:])
 		if err != nil {
 			return fmt.Errorf("invalid delete arguments: %w", err)
 		}
@@ -74,11 +74,11 @@ func run(args []string) error {
 	}
 }
 
-func parseCarIDArgs(args []string) (string, error) {
+func parseCarIDArg(args []string) (string, error) {
 	flags := flag.NewFlagSet("car", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 
-	id := flags.String("i", "", "id")
+	id := flags.String("id", "", "id")
 
 	if err := flags.Parse(args); err != nil {
 		return "", err
@@ -89,7 +89,7 @@ func parseCarIDArgs(args []string) (string, error) {
 	}
 
 	if *id == "" {
-		return "", fmt.Errorf("missing required flag: -i")
+		return "", fmt.Errorf("missing required flag: -id")
 	}
 
 	return *id, nil
@@ -149,7 +149,7 @@ func parseUpdateCarArgs(args []string) (commands.UpdateCarParams, error) {
 	flags := flag.NewFlagSet("update", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 
-	carID := flags.String("i", "", "id")
+	carID := flags.String("id", "", "id")
 	carMake := flags.String("make", "", "make")
 	carModel := flags.String("model", "", "model")
 	carColor := flags.String("color", "", "color")
@@ -165,7 +165,7 @@ func parseUpdateCarArgs(args []string) (commands.UpdateCarParams, error) {
 	}
 
 	if *carID == "" {
-		return commands.UpdateCarParams{}, fmt.Errorf("missing required flag: -i")
+		return commands.UpdateCarParams{}, fmt.Errorf("missing required flag: -id")
 	}
 
 	return commands.UpdateCarParams{
