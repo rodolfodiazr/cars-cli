@@ -11,13 +11,14 @@ import (
 	"github.com/rodolfodiazr/cars-cli/internal/client"
 )
 
-// ListCarsParams represents the filtering parameters used to list cars.
+// ListCarsParams represents the parameters for the list command.
 type ListCarsParams struct {
 	Make  string
 	Model string
 	Year  int
 }
 
+// UpdateCarParams represents the parameters for the update command.
 type UpdateCarParams struct {
 	ID       string
 	Make     string
@@ -27,6 +28,7 @@ type UpdateCarParams struct {
 	Year     int
 }
 
+// CreateCarParams represents the parameters for the create command.
 type CreateCarParams struct {
 	Make     string
 	Model    string
@@ -35,14 +37,17 @@ type CreateCarParams struct {
 	Year     int
 }
 
+// Cars provides commands for managing cars.
 type Cars struct {
 	client client.Car
 }
 
+// NewCars creates a new Cars command handler using the provided car client.
 func NewCars(client client.Car) Cars {
 	return Cars{client: client}
 }
 
+// List retrieves and displays cars matching the provided filters.
 func (c *Cars) List(ctx context.Context, params ListCarsParams) error {
 	cars, err := c.client.ListCars(ctx, params.Make, params.Model, params.Year)
 	if err != nil {
@@ -55,7 +60,7 @@ func (c *Cars) List(ctx context.Context, params ListCarsParams) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tMAKE\tMODEL\tYEAR\tPACKAGE\tMILEAGE\tPRICE")
+	fmt.Fprintln(w, "ID\tMAKE\tMODEL\tCOLOR\tCATEGORY\tYEAR\tPACKAGE\tMILEAGE\tPRICE")
 
 	for _, car := range cars {
 		pkg := "--"
@@ -71,8 +76,8 @@ func (c *Cars) List(ctx context.Context, params ListCarsParams) error {
 			price = formatInt64(*car.Price)
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%s\t%s\n",
-			car.ID, car.Make, car.Model, car.Year, pkg, mileage, price)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%d\t%s\t%s\t%s\n",
+			car.ID, car.Make, car.Model, car.Color, car.Category, car.Year, pkg, mileage, price)
 	}
 
 	if err := w.Flush(); err != nil {
@@ -83,6 +88,7 @@ func (c *Cars) List(ctx context.Context, params ListCarsParams) error {
 	return nil
 }
 
+// Get retrieves and displays a car by its ID.
 func (c *Cars) Get(ctx context.Context, carID string) error {
 	result, err := c.client.GetCar(ctx, carID)
 	if err != nil {
@@ -107,12 +113,14 @@ func (c *Cars) Get(ctx context.Context, carID string) error {
 	fmt.Printf("Model:    %s\n", result.Model)
 	fmt.Printf("Color:    %s\n", result.Color)
 	fmt.Printf("Category: %s\n", result.Category)
+	fmt.Printf("Year:     %d\n", result.Year)
 	fmt.Printf("Package:  %s\n", pkg)
 	fmt.Printf("Mileage:  %s\n", mileage)
 	fmt.Printf("Price:    %s\n", price)
 	return nil
 }
 
+// Create creates a car using the provided parameters.
 func (c *Cars) Create(ctx context.Context, params CreateCarParams) error {
 	req := car.CreateCar{
 		Make:     params.Make,
@@ -132,6 +140,7 @@ func (c *Cars) Create(ctx context.Context, params CreateCarParams) error {
 	return nil
 }
 
+// Update updates a car using the provided parameters.
 func (c *Cars) Update(ctx context.Context, params UpdateCarParams) error {
 	req := car.UpdateCar{
 		Make:     params.Make,
@@ -150,21 +159,20 @@ func (c *Cars) Update(ctx context.Context, params UpdateCarParams) error {
 	return nil
 }
 
+// Delete deletes a car by its ID.
 func (c *Cars) Delete(ctx context.Context, carID string) error {
 	if err := c.client.DeleteCar(ctx, carID); err != nil {
 		return fmt.Errorf("delete car %s: %w", carID, err)
 	}
 
-	fmt.Printf("Car %s deleted successfully.\n", carID)
+	fmt.Printf("Car deleted successfully (ID: %s)", carID)
 	return nil
 }
 
 func formatInt64(value int64) string {
 	s := strconv.FormatInt(value, 10)
-
 	for i := len(s) - 3; i > 0; i -= 3 {
 		s = s[:i] + "," + s[i:]
 	}
-
 	return s
 }
