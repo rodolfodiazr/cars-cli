@@ -35,6 +35,9 @@ type CreateCarParams struct {
 	Color    string
 	Category string
 	Year     int
+	Package  *string
+	Mileage  *int64
+	Price    *int64
 }
 
 // Cars provides commands for managing cars.

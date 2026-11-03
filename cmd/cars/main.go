@@ -20,7 +20,7 @@ func main() {
 }
 
 func run(args []string) error {
-	if len(args) < 2 {
+	if len(args) < 1 {
 		return fmt.Errorf("missing command: usage: cars <command>")
 	}
 
@@ -127,6 +127,9 @@ func parseCreateCarArgs(args []string) (commands.CreateCarParams, error) {
 	carColor := flags.String("color", "", "color")
 	carCategory := flags.String("category", "", "category")
 	carYear := flags.Int("year", 0, "year")
+	pkg := flags.String("package", "", "package")
+	mileage := flags.Int64("mileage", 0, "mileage")
+	price := flags.Int64("price", 0, "price")
 
 	if err := flags.Parse(args); err != nil {
 		return commands.CreateCarParams{}, err
@@ -142,6 +145,9 @@ func parseCreateCarArgs(args []string) (commands.CreateCarParams, error) {
 		Color:    *carColor,
 		Category: *carCategory,
 		Year:     *carYear,
+		Package:  pkg,
+		Mileage:  mileage,
+		Price:    price,
 	}, nil
 }
 
