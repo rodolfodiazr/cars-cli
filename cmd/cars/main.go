@@ -127,9 +127,9 @@ func parseCreateCarArgs(args []string) (commands.CreateCarParams, error) {
 	carColor := flags.String("color", "", "color")
 	carCategory := flags.String("category", "", "category")
 	carYear := flags.Int("year", 0, "year")
-	pkg := flags.String("package", "", "package")
-	mileage := flags.Int64("mileage", 0, "mileage")
-	price := flags.Int64("price", 0, "price")
+	carPackage := flags.String("package", "", "package")
+	carMileage := flags.Int64("mileage", 0, "mileage")
+	carPrice := flags.Int64("price", 0, "price")
 
 	if err := flags.Parse(args); err != nil {
 		return commands.CreateCarParams{}, err
@@ -145,9 +145,9 @@ func parseCreateCarArgs(args []string) (commands.CreateCarParams, error) {
 		Color:    *carColor,
 		Category: *carCategory,
 		Year:     *carYear,
-		Package:  pkg,
-		Mileage:  mileage,
-		Price:    price,
+		Package:  carPackage,
+		Mileage:  carMileage,
+		Price:    carPrice,
 	}, nil
 }
 
@@ -161,6 +161,9 @@ func parseUpdateCarArgs(args []string) (commands.UpdateCarParams, error) {
 	carColor := flags.String("color", "", "color")
 	carCategory := flags.String("category", "", "category")
 	carYear := flags.Int("year", 0, "year")
+	carPackage := flags.String("package", "", "package")
+	carMileage := flags.Int64("mileage", 0, "mileage")
+	carPrice := flags.Int64("price", 0, "price")
 
 	if err := flags.Parse(args); err != nil {
 		return commands.UpdateCarParams{}, err
@@ -181,5 +184,8 @@ func parseUpdateCarArgs(args []string) (commands.UpdateCarParams, error) {
 		Color:    *carColor,
 		Category: *carCategory,
 		Year:     *carYear,
+		Package:  carPackage,
+		Mileage:  carMileage,
+		Price:    carPrice,
 	}, nil
 }

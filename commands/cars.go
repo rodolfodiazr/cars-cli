@@ -26,6 +26,9 @@ type UpdateCarParams struct {
 	Color    string
 	Category string
 	Year     int
+	Package  *string
+	Mileage  *int64
+	Price    *int64
 }
 
 // CreateCarParams represents the parameters for the create command.
@@ -131,14 +134,15 @@ func (c *Cars) Create(ctx context.Context, params CreateCarParams) error {
 		Color:    params.Color,
 		Category: params.Category,
 		Year:     params.Year,
+		Package:  params.Package,
+		Mileage:  params.Mileage,
+		Price:    params.Price,
 	}
 
 	carID, err := c.client.CreateCar(ctx, req)
 	if err != nil {
 		return fmt.Errorf("create car: %w", err)
 	}
-
-	fmt.Printf("Car created successfully (ID: %s)", carID)
 
 	return nil
 }
@@ -151,6 +155,9 @@ func (c *Cars) Update(ctx context.Context, params UpdateCarParams) error {
 		Color:    params.Color,
 		Category: params.Category,
 		Year:     params.Year,
+		Package:  params.Package,
+		Mileage:  params.Mileage,
+		Price:    params.Price,
 	}
 
 	if err := c.client.UpdateCar(ctx, params.ID, req); err != nil {

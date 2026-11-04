@@ -145,6 +145,9 @@ func (c *carClient) CreateCar(ctx context.Context, req car.CreateCar) (string, e
 		Color:    req.Color,
 		Category: req.Category,
 		Year:     req.Year,
+		Package:  req.Package,
+		Mileage:  req.Mileage,
+		Price:    req.Price,
 	}
 
 	request, err := BuildRequest(http.MethodPost, c.basePath, path, nil, payload)
@@ -184,6 +187,9 @@ func (c *carClient) UpdateCar(ctx context.Context, carID string, req car.UpdateC
 		Color:    req.Color,
 		Category: req.Category,
 		Year:     req.Year,
+		Package:  req.Package,
+		Mileage:  req.Mileage,
+		Price:    req.Price,
 	}
 
 	request, err := BuildRequest(http.MethodPut, c.basePath, path, nil, payload)

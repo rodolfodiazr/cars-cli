@@ -25,6 +25,9 @@ type CreateCar struct {
 	Color    string
 	Category string
 	Year     int
+	Package  *string
+	Mileage  *int64
+	Price    *int64
 }
 
 // UpdateCar represents the information used to update a car.
@@ -34,4 +37,7 @@ type UpdateCar struct {
 	Color    string
 	Category string
 	Year     int
+	Package  *string
+	Mileage  *int64
+	Price    *int64
 }
