@@ -144,6 +144,8 @@ func (c *Cars) Create(ctx context.Context, params CreateCarParams) error {
 		return fmt.Errorf("create car: %w", err)
 	}
 
+	fmt.Printf("Car created successfully (ID: %s)", carID)
+
 	return nil
 }
 
