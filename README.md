@@ -22,11 +22,11 @@ go run ./cmd/cars
 ## 📋 Available Commands
 
 ```text
-cars list
-cars get <id>
-cars create
-cars update <id>
-cars delete <id>
+cars list [--make <make>] [--model <model>] [--year <year>]
+cars get -id <id>
+cars create --make <make> --model <model> --color <color> --category <category> --year <year>
+cars update -id <id> [--make <make>] [--model <model>] [--color <color>] [--category <category>] [--year <year>]
+cars delete -id <id>
 ```
 
 The CLI communicates with the Cars API through HTTP requests.
